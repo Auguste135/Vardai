@@ -2,7 +2,6 @@ import streamlit as st
 import torch
 import pandas as pd
 
-
 class MinimalTransformer(torch.nn.Module):
     def __init__(self, vocab_size, embed_size, num_heads, forward_expansion, gender_size):
         super(MinimalTransformer, self).__init__()
@@ -20,7 +19,6 @@ class MinimalTransformer(torch.nn.Module):
         x = self.output_layer(x)
         return x
 
-
 class NameDataset:
     def __init__(self, csv_file):
         data = pd.read_csv(csv_file)
@@ -35,18 +33,14 @@ class NameDataset:
         self.gender_to_int = {'male': 0, 'female': 1}
         self.int_to_gender = {0: 'male', 1: 'female'}
 
-
-# Load the dataset and model
 @st.cache_resource
 def load_resources():
-    dataset = NameDataset('lithuanian_names.csv')
-    model = torch.load('lit_names_model.pt', map_location=torch.device('cpu'))
+    dataset = NameDataset('vardai.csv')
+    model = torch.load('vardai_model.pt', map_location=torch.device('cpu'))
     model.eval()
     return model, dataset
 
-
-# Sampling function
-def sample(model, dataset, start_str='a', max_length=20, temperature=1.0, gender='male'):
+def sample(model, dataset, start_str='a', max_length=15, temperature=1.0, gender='male'):
     assert temperature > 0, "Temperature must be greater than 0"
     with torch.no_grad():
         chars = [dataset.char_to_int[c] for c in start_str]
@@ -68,30 +62,22 @@ def sample(model, dataset, start_str='a', max_length=20, temperature=1.0, gender
             input_seq = torch.cat([input_seq, torch.tensor([[next_char_idx]])], dim=1)
 
         return output_name
+st.title("Vardų generatorius")
 
+start_str = st.text_input("Įvesti vardo pradžią", "A")
+gender_input = st.selectbox("Lytis:", ["Vyriškas", "Moteriškas"])
 
-# Interface
-st.title("Lithuanian (ish) Name Generator")
-
-# Inputs
-start_str = st.text_input("Enter the starting letters:", "A")
-gender_input = st.selectbox("Gender:", ["Male", "Female"])
-
-# Fixing issues due to localized gender :D
 gender_translation = {
-    'Male': 'male',
-    'Female': 'female'
+    'Vyriškas': 'male',
+    'Moteriškas': 'female'
 }
 gender = gender_translation[gender_input]
 
 model, dataset = load_resources()
 
-# Generates name
-if st.button("Generate a name"):
+if st.button("Gautas vardas"):
     generated_name = sample(model, dataset, start_str=start_str, max_length=20, temperature=0.1, gender=gender)
-    st.success(f"Generated name: {generated_name}")
-
-# Generates a very creative name
-if st.button("Generate a creative name"):
+    st.success(f"Gautas vardas: {generated_name}")
+if st.button("Gauntas unikalus vardas"):
     generated_name = sample(model, dataset, start_str=start_str, max_length=20, temperature=2.0, gender=gender)
-    st.success(f"Generated name: {generated_name}")
+    st.success(f"Gautas vardas: {generated_name}")
