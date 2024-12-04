@@ -65,11 +65,11 @@ def sample(model, dataset, start_str='a', max_length=15, temperature=1.0, gender
 st.title("Vardų generatorius")
 
 start_str = st.text_input("Įvesti vardo pradžią", "A")
-gender_input = st.selectbox("Lytis:", ["Vyriškas", "Moteriškas"])
+gender_input = st.selectbox("Lytis:", ["Vyras", "Moteris"])
 
 gender_translation = {
-    'Vyriškas': 'male',
-    'Moteriškas': 'female'
+    'Vyras': 'male',
+    'Moteris': 'female'
 }
 gender = gender_translation[gender_input]
 
